@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: token-exchanger
+
+server:
+  port: 9000
