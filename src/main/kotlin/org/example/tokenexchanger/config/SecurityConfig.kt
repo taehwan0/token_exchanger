@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.JWKSource
 import com.nimbusds.jose.proc.SecurityContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.http.MediaType
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -17,6 +18,8 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod
 import org.springframework.security.oauth2.core.oidc.OidcScopes
 import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.JwtEncoder
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository
@@ -24,6 +27,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings
+import org.springframework.security.oauth2.server.authorization.token.JwtGenerator
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
@@ -39,7 +43,8 @@ import java.util.*
 class SecurityConfig {
 
     @Bean
-    fun authorizationServerSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    @Order(1)
+    fun authorizationServerSecurityFilterChain(http: HttpSecurity, jwtGenerator: JwtGenerator): SecurityFilterChain {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http)
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer::class.java)
@@ -55,6 +60,9 @@ class SecurityConfig {
             .oauth2ResourceServer { resourceServer ->
                 resourceServer.jwt(Customizer.withDefaults())
             }
+            // custom provider를 등록, 단독으로 @Bean 어노테이션을 사용해 주입하는 경우 default provider들이 주입되지 않았음
+            // TODO: 이 provider 외의 grant를 허용하지 않으려면 @Bean 사용하여 단독으로 주입 할 것
+            .authenticationProvider(CustomTokenExchangeProvider(jwtGenerator))
 
         return http.build()
     }
@@ -97,6 +105,7 @@ class SecurityConfig {
             .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+            .authorizationGrantType(AuthorizationGrantType.TOKEN_EXCHANGE)
             .redirectUri("http://localhost:8080/login/oauth2/code/oidc-client")
             .postLogoutRedirectUri("http://localhost:8080/")
             .scope(OidcScopes.OPENID)
@@ -126,6 +135,28 @@ class SecurityConfig {
         return ImmutableJWKSet(jwkSet)
     }
 
+    @Bean
+    fun authorizationServerSettings(): AuthorizationServerSettings {
+        return AuthorizationServerSettings
+            .builder()
+            .build()
+    }
+
+    @Bean
+    fun jwtDecoder(jwkSource: JWKSource<SecurityContext>): JwtDecoder {
+        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource)
+    }
+
+    @Bean
+    fun jwtEncoder(jwkSource: JWKSource<SecurityContext>): JwtEncoder {
+        return NimbusJwtEncoder(jwkSource)
+    }
+
+    @Bean
+    fun jwtGenerator(jwtEncoder: JwtEncoder): JwtGenerator {
+        return JwtGenerator(jwtEncoder)
+    }
+
     companion object {
         fun generateRsaKey(): KeyPair {
             try {
@@ -136,17 +167,5 @@ class SecurityConfig {
                 throw IllegalStateException("Could not generate private key", e)
             }
         }
-    }
-
-    @Bean
-    fun jwtDecoder(jwkSource: JWKSource<SecurityContext>): JwtDecoder {
-        return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource)
-    }
-
-    @Bean
-    fun authorizationServerSettings(): AuthorizationServerSettings {
-        return AuthorizationServerSettings
-            .builder()
-            .build()
     }
 }
