@@ -47,3 +47,34 @@ curl -X POST http://localhost:9000/oauth2/token \
   "expires_in": 299
 }
 ```
+
+## Token Exchange
+
+### 1. 교환 대상 토큰 발급
+
+교환 대상 토큰(subject)을 발급한다. 교환처에 따라 토큰 발급 과정이 다르니 여기에서 서술하지는 않는다.  
+현재 구성에서는 요청 시 token에 아무런 문자열이나 입력해도 token-exchange를 통한 발급이 성공된다.  
+*TODO: 추후 요청에 대한 검증 로직을 추가하면서 항목 수정 예정*
+
+### 2. 토큰 교환하기
+
+1에서 발급한 token을 넣어 아래와 같이 요청을 보낸다. subject_token은 다른 서비스에서 발급 받은 access_token이라고 가정한다.
+
+```shell
+curl -X POST http://localhost:9000/oauth2/token \
+  -H "Authorization: Basic b2lkYy1jbGllbnQ6c2VjcmV0" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=urn:ietf:params:oauth:grant-type:token-exchange&request_token_type=access_token&scope=profile&subject_token={subject_token}&subject_token_type={urn:ietf:params:oauth:token-type:access_token}"
+```
+
+아래와 같은 response를 받는다.
+
+```json
+{
+  "access_token": "eyJraWQiOiJiZmFkNjk4Zi01NTRmLTQzYjItODZkMC04NmNjNzZiNTAwYzciLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJvaWRjLWNsaWVudCIsImF1ZCI6Im9pZGMtY2xpZW50IiwibmJmIjoxNzIwNDI0MTU0LCJzY29wZSI6WyJwcm9maWxlIl0sImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6OTAwMCIsImV4cCI6MTcyMDQyNDQ1NCwiaWF0IjoxNzIwNDI0MTU0LCJqdGkiOiJkZTU2NmNmMy0wY2QyLTRmODAtODA1Ny0yMTFmNmJlM2MzYTAifQ.pXPqLq6V3AA_r5pAXuE5CgZHEG3pabs6LkdP5ss1QfVtl7brU8Ua3Arf1hs1H6YYWT44BaXj9S33xIJxIZVTv9RclhOkCP0P_cWZ9Hf-Zc9R1YjHGtkA3bC8yAYxM2wIJMfnFBSWBvY6wLiFzZMupgDMzcG_gtjSeZnSc6tPO_ab2yVM-4qxlT_zO3ON4AFG52kPJqYmMTGfBKytwR575fraCCJHCuBqVZ0D_puPxe1t_hU6jqbG2iFQfnA9X9g84Lcr8u7TV8p7Vp1Cf9UEdt0oObiz0eWbqn584vRu4ruYvRRiJikeb8fOLv4we0_Eo6CxGyYyljv4egKBbE8ThA",
+  "refresh_token": "LORb1GtfRor8ILJHuZPYGlcdVBa7plmDP3BL_XBAR8D-GIblHBg8z-ioJWb2owP8jyn4hQhUZZyYkbdnll4scAac8G1Hy0Y0kWsot0bv2wph3EvH1OxKwmIlh_Vy7_wQ",
+  "scope": "profile",
+  "token_type": "Bearer",
+  "expires_in": 299
+}
+```
