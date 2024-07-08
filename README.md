@@ -1,4 +1,12 @@
-## Authorization Code Flow
+## Contents
+
+1. [Authorization Code Grant](#authorization-code-grant)
+2. [Token Exchange](#token-exchange)
+
+
+## Authorization Code Grant
+
+> https://datatracker.ietf.org/doc/html/rfc6749#section-4.1
 
 ### 1. Authorization 요청 보내기
 
@@ -49,6 +57,8 @@ curl -X POST http://localhost:9000/oauth2/token \
 ```
 
 ## Token Exchange
+
+> https://datatracker.ietf.org/doc/html/rfc8693
 
 ### 1. 교환 대상 토큰 발급
 
