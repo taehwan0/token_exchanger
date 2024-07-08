@@ -16,10 +16,13 @@ import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.oauth2.core.AuthorizationGrantType
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod
+import org.springframework.security.oauth2.core.OAuth2Token
 import org.springframework.security.oauth2.core.oidc.OidcScopes
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtEncoder
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
+import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService
+import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository
@@ -27,7 +30,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings
-import org.springframework.security.oauth2.server.authorization.token.JwtGenerator
+import org.springframework.security.oauth2.server.authorization.token.*
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
@@ -44,7 +47,11 @@ class SecurityConfig {
 
     @Bean
     @Order(1)
-    fun authorizationServerSecurityFilterChain(http: HttpSecurity, jwtGenerator: JwtGenerator): SecurityFilterChain {
+    fun authorizationServerSecurityFilterChain(
+        http: HttpSecurity,
+        tokenGenerator: OAuth2TokenGenerator<OAuth2Token>,
+        authorizationService: OAuth2AuthorizationService
+    ): SecurityFilterChain {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http)
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer::class.java)
@@ -62,7 +69,7 @@ class SecurityConfig {
             }
             // custom provider를 등록, 단독으로 @Bean 어노테이션을 사용해 주입하는 경우 default provider들이 주입되지 않았음
             // TODO: 이 provider 외의 grant를 허용하지 않으려면 @Bean 사용하여 단독으로 주입 할 것
-            .authenticationProvider(CustomTokenExchangeProvider(jwtGenerator))
+            .authenticationProvider(CustomTokenExchangeProvider(tokenGenerator, authorizationService))
 
         return http.build()
     }
@@ -108,7 +115,7 @@ class SecurityConfig {
             .authorizationGrantType(AuthorizationGrantType.TOKEN_EXCHANGE)
             .redirectUri("http://localhost:8080/login/oauth2/code/oidc-client")
             .postLogoutRedirectUri("http://localhost:8080/")
-            .scope(OidcScopes.OPENID)
+//            .scope(OidcScopes.OPENID)
             .scope(OidcScopes.PROFILE)
             .clientSettings(
                 ClientSettings.builder()
@@ -153,8 +160,21 @@ class SecurityConfig {
     }
 
     @Bean
-    fun jwtGenerator(jwtEncoder: JwtEncoder): JwtGenerator {
-        return JwtGenerator(jwtEncoder)
+    fun tokenGenerator(jwtEncoder: JwtEncoder): OAuth2TokenGenerator<OAuth2Token> {
+        val jwtGenerator = JwtGenerator(jwtEncoder)
+        val accessTokenGenerator = OAuth2AccessTokenGenerator()
+        val refreshTokenGenerator = OAuth2RefreshTokenGenerator()
+
+        return DelegatingOAuth2TokenGenerator(
+            jwtGenerator,
+            accessTokenGenerator,
+            refreshTokenGenerator
+        )
+    }
+
+    @Bean
+    fun authorizationService(): OAuth2AuthorizationService {
+        return InMemoryOAuth2AuthorizationService()
     }
 
     companion object {
