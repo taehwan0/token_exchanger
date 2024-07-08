@@ -30,7 +30,10 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings
-import org.springframework.security.oauth2.server.authorization.token.*
+import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator
+import org.springframework.security.oauth2.server.authorization.token.JwtGenerator
+import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
@@ -162,12 +165,12 @@ class SecurityConfig {
     @Bean
     fun tokenGenerator(jwtEncoder: JwtEncoder): OAuth2TokenGenerator<OAuth2Token> {
         val jwtGenerator = JwtGenerator(jwtEncoder)
-        val accessTokenGenerator = OAuth2AccessTokenGenerator()
+        // opaque access token 사용이 필요한 경우에 추가?
+//        val accessTokenGenerator = OAuth2AccessTokenGenerator()
         val refreshTokenGenerator = OAuth2RefreshTokenGenerator()
 
         return DelegatingOAuth2TokenGenerator(
             jwtGenerator,
-            accessTokenGenerator,
             refreshTokenGenerator
         )
     }
