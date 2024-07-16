@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings
 import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator
 import org.springframework.security.oauth2.server.authorization.token.JwtGenerator
 import org.springframework.security.oauth2.server.authorization.token.OAuth2RefreshTokenGenerator
@@ -42,6 +43,7 @@ import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
+import java.time.Duration
 import java.util.*
 
 @EnableWebSecurity
@@ -118,8 +120,15 @@ class SecurityConfig {
             .authorizationGrantType(AuthorizationGrantType.TOKEN_EXCHANGE)
             .redirectUri("http://localhost:8080/login/oauth2/code/oidc-client")
             .postLogoutRedirectUri("http://localhost:8080/")
-//            .scope(OidcScopes.OPENID)
             .scope(OidcScopes.PROFILE)
+            .tokenSettings(
+                TokenSettings
+                    .builder()
+                    .reuseRefreshTokens(false) // refresh token rotation
+                    .accessTokenTimeToLive(Duration.ofHours(2))
+                    .refreshTokenTimeToLive(Duration.ofDays(30))
+                    .build()
+            )
             .clientSettings(
                 ClientSettings.builder()
                     .requireAuthorizationConsent(true)
