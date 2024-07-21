@@ -3,7 +3,6 @@
 1. [Authorization Code Grant](#authorization-code-grant)
 2. [Token Exchange](#token-exchange)
 
-
 ## Authorization Code Grant
 
 > https://datatracker.ietf.org/doc/html/rfc6749#section-4.1
@@ -74,7 +73,7 @@ curl -X POST http://localhost:9000/oauth2/token \
 curl -X POST http://localhost:9000/oauth2/token \
   -H "Authorization: Basic b2lkYy1jbGllbnQ6c2VjcmV0" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=urn:ietf:params:oauth:grant-type:token-exchange&request_token_type=access_token&scope=profile&subject_token={subject_token}&subject_token_type={urn:ietf:params:oauth:token-type:access_token}"
+  -d "grant_type=urn:ietf:params:oauth:grant-type:token-exchange&scope=openid%20profile&subject_token={subject_token}&subject_token_type={urn:ietf:params:oauth:token-type:access_token}"
 ```
 
 아래와 같은 response를 받는다.
@@ -83,8 +82,8 @@ curl -X POST http://localhost:9000/oauth2/token \
 {
   "access_token": "eyJraWQiOiJiZmFkNjk4Zi01NTRmLTQzYjItODZkMC04NmNjNzZiNTAwYzciLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJvaWRjLWNsaWVudCIsImF1ZCI6Im9pZGMtY2xpZW50IiwibmJmIjoxNzIwNDI0MTU0LCJzY29wZSI6WyJwcm9maWxlIl0sImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6OTAwMCIsImV4cCI6MTcyMDQyNDQ1NCwiaWF0IjoxNzIwNDI0MTU0LCJqdGkiOiJkZTU2NmNmMy0wY2QyLTRmODAtODA1Ny0yMTFmNmJlM2MzYTAifQ.pXPqLq6V3AA_r5pAXuE5CgZHEG3pabs6LkdP5ss1QfVtl7brU8Ua3Arf1hs1H6YYWT44BaXj9S33xIJxIZVTv9RclhOkCP0P_cWZ9Hf-Zc9R1YjHGtkA3bC8yAYxM2wIJMfnFBSWBvY6wLiFzZMupgDMzcG_gtjSeZnSc6tPO_ab2yVM-4qxlT_zO3ON4AFG52kPJqYmMTGfBKytwR575fraCCJHCuBqVZ0D_puPxe1t_hU6jqbG2iFQfnA9X9g84Lcr8u7TV8p7Vp1Cf9UEdt0oObiz0eWbqn584vRu4ruYvRRiJikeb8fOLv4we0_Eo6CxGyYyljv4egKBbE8ThA",
   "refresh_token": "LORb1GtfRor8ILJHuZPYGlcdVBa7plmDP3BL_XBAR8D-GIblHBg8z-ioJWb2owP8jyn4hQhUZZyYkbdnll4scAac8G1Hy0Y0kWsot0bv2wph3EvH1OxKwmIlh_Vy7_wQ",
-  "scope": "profile",
+  "scope": "openid profile",
   "token_type": "Bearer",
-  "expires_in": 299
+  "expires_in": 7199
 }
 ```
