@@ -1,4 +1,4 @@
-package org.example.tokenexchanger.config
+package org.example.tokenexchanger.provider
 
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.core.Authentication
@@ -23,7 +23,6 @@ class CustomTokenExchangeProvider(
     init {
         println("constructor called!!")
     }
-
 
     override fun authenticate(authentication: Authentication?): Authentication {
         println("authenticate method called $authentication")
