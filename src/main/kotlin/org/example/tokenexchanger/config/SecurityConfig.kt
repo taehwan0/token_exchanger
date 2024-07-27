@@ -24,14 +24,12 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher
 
 @EnableWebSecurity
 @Configuration
-class SecurityConfig {
+class SecurityConfig(
+    private val tokenGenerator: OAuth2TokenGenerator<OAuth2Token>,
+) {
     @Bean
     @Order(1)
-    fun authorizationServerSecurityFilterChain(
-        http: HttpSecurity,
-        tokenGenerator: OAuth2TokenGenerator<OAuth2Token>,
-        authorizationService: OAuth2AuthorizationService
-    ): SecurityFilterChain {
+    fun authorizationServerSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http)
 
         http.getConfigurer(OAuth2AuthorizationServerConfigurer::class.java)
@@ -49,7 +47,7 @@ class SecurityConfig {
             }
             // custom provider를 등록, 단독으로 @Bean 어노테이션을 사용해 주입하는 경우 default provider들이 주입되지 않았음
             // TODO: 이 provider 외의 grant를 허용하지 않으려면 @Bean 사용하여 단독으로 주입 할 것
-            .authenticationProvider(CustomTokenExchangeProvider(tokenGenerator, authorizationService))
+            .authenticationProvider(CustomTokenExchangeProvider(tokenGenerator, authorizationService()))
 
         return http.build()
     }
