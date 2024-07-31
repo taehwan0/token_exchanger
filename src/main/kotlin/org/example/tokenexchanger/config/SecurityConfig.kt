@@ -57,6 +57,7 @@ class SecurityConfig(
         http.authorizeHttpRequests { authorize ->
             authorize
                 .requestMatchers("/oauth2/authorize", "/oauth2/token").permitAll()
+                .requestMatchers("/", "/health-check").permitAll()
                 .anyRequest().authenticated()
         }
             .formLogin(Customizer.withDefaults())
