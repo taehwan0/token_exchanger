@@ -45,8 +45,7 @@ class SecurityConfig(
             .oauth2ResourceServer { resourceServer ->
                 resourceServer.jwt(Customizer.withDefaults())
             }
-            // custom provider를 등록, 단독으로 @Bean 어노테이션을 사용해 주입하는 경우 default provider들이 주입되지 않았음
-            // TODO: 이 provider 외의 grant를 허용하지 않으려면 @Bean 사용하여 단독으로 주입 할 것
+            // custom provider 등록 방법, 단독 bean으로 주입 시 default provider들과 다른 ProviderManager에 생성이 되는 것으로 확인0
             .authenticationProvider(CustomTokenExchangeProvider(tokenGenerator, authorizationService()))
 
         return http.build()
